@@ -15,8 +15,10 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
 4. Bangs `!tavily` and `!jina` work out of the box.
 
 ## Notes
-- Both APIs are single-page: no offset/limit params, so result pages beyond 1 repeat page 1.
-- Jina response shape (`data[].title/url/description/content`) should be sanity-checked
-  against current docs at https://jina.ai/docs — their API surface moves occasionally.
+- Tavily has no pagination: result pages beyond 1 repeat page 1. Jina search accepts
+  `num` (result count) and `hl` (language) — both are used by the engine — but its `page`
+  param is undocumented for search, so pagination is not attempted.
+- Jina response shape (`data[].title/url/description/content`) verified against the
+  s.jina.ai OpenAPI spec (2026-09).
 - Both map cleanly to degoog's engine contract; Brave API Search
   (official-extensions/engines/brave-api-search) was used as the reference pattern.

@@ -58,9 +58,11 @@ export default class TavilyEngine {
       search_depth: this.searchDepth,
       topic: this.topic,
     };
-    // Map degoog's time filter onto Tavily's "days" window.
-    const daysMap = { day: 1, week: 7, month: 30, year: 365 };
-    if (timeFilter && daysMap[timeFilter]) body.days = daysMap[timeFilter];
+    // Map degoog's time filter onto Tavily's time_range (day/week/month/year).
+    // Note: the older "days" param is no longer part of Tavily's API schema.
+    if (timeFilter && ["day", "week", "month", "year"].includes(timeFilter)) {
+      body.time_range = timeFilter;
+    }
     try {
       const response = await doFetch(API_URL, {
         method: "POST",
