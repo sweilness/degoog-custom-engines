@@ -13,7 +13,7 @@
       "path": "engines/jina",
       "name": "Jina Search",
       "description": "Jina AI s.jina.ai web search. Needs a free API key from jina.ai.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     }
   ]
 }

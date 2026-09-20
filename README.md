@@ -9,6 +9,7 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
 - `engines/tavily/screenshots/` — engine images shown in the Store gallery
 - `engines/jina/index.js` — Jina engine (GET s.jina.ai/?q=, Bearer key)
 - `engines/jina/author.json` — author info
+- `engines/jina/screenshots/` — engine images shown in the Store gallery
 - `assets/repo-image.png` — repository image
 
 ## Install
