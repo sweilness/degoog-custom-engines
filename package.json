@@ -7,19 +7,22 @@
       "path": "engines/tavily",
       "name": "Tavily",
       "description": "Tavily API web search. Needs a free API key from app.tavily.com.",
-      "version": "1.0.2"
+      "version": "1.1.0",
+      "minDegoogVersion": "0.19.0"
     },
     {
       "path": "engines/jina",
       "name": "Jina Search",
       "description": "Jina AI s.jina.ai web search. Needs a free API key from jina.ai.",
-      "version": "1.0.1"
+      "version": "1.0.2",
+      "minDegoogVersion": "0.19.0"
     },
     {
       "path": "engines/exa",
       "name": "Exa",
       "description": "Exa API web search. Free tier adds $10 in credits every month — needs a key from exa.ai.",
-      "version": "1.0.1"
+      "version": "1.1.0",
+      "minDegoogVersion": "0.19.0"
     }
   ]
 }

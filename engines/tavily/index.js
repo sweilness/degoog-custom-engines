@@ -15,6 +15,14 @@ export default class TavilyEngine {
       description: "Get a free key at https://app.tavily.com",
     },
     {
+      key: "safeSearch",
+      label: "Safe Search",
+      type: "select",
+      options: ["off", "moderate", "strict"],
+      default: "off",
+      description: "Filter adult content from results (Tavily safe_search).",
+    },
+    {
       key: "maxResults",
       label: "Max results",
       type: "number",
@@ -46,12 +54,16 @@ export default class TavilyEngine {
     },
   ];
   apiKey = "";
+  safeSearch = "off";
   maxResults = 10;
   searchDepth = "basic";
   topic = "general";
   snippetLength = 200;
   configure(settings) {
     this.apiKey = settings.apiKey || "";
+    this.safeSearch = ["off", "moderate", "strict"].includes(settings.safeSearch)
+      ? settings.safeSearch
+      : "off";
     const n = parseInt(settings.maxResults || "10", 10);
     this.maxResults = Math.min(Math.max(Number.isNaN(n) ? 10 : n, 1), 20);
     this.searchDepth = settings.searchDepth === "advanced" ? "advanced" : "basic";
@@ -73,6 +85,12 @@ export default class TavilyEngine {
     // Note: the older "days" param is no longer part of Tavily's API schema.
     if (timeFilter && ["day", "week", "month", "year"].includes(timeFilter)) {
       body.time_range = timeFilter;
+    }
+    // Tavily's safe_search is a boolean; both moderate and strict enable it.
+    // It is not supported for the fast/ultra-fast depths, which this engine
+    // does not offer anyway (basic/advanced only).
+    if (this.safeSearch !== "off") {
+      body.safe_search = true;
     }
     try {
       const response = await doFetch(API_URL, {

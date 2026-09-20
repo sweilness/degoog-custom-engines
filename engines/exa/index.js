@@ -16,6 +16,14 @@ export default class ExaSearchEngine {
         "Get a key at https://exa.ai — free tier adds $10 in credits every month (plus $20 one-time on signup).",
     },
     {
+      key: "safeSearch",
+      label: "Safe Search",
+      type: "select",
+      options: ["off", "moderate", "strict"],
+      default: "off",
+      description: "Enable Exa content moderation to filter unsafe results.",
+    },
+    {
       key: "maxResults",
       label: "Max results",
       type: "number",
@@ -33,10 +41,14 @@ export default class ExaSearchEngine {
     },
   ];
   apiKey = "";
+  safeSearch = "off";
   maxResults = 10;
   searchType = "auto";
   configure(settings) {
     this.apiKey = settings.apiKey || "";
+    this.safeSearch = ["off", "moderate", "strict"].includes(settings.safeSearch)
+      ? settings.safeSearch
+      : "off";
     const n = parseInt(settings.maxResults || "10", 10);
     this.maxResults = Math.min(Math.max(Number.isNaN(n) ? 10 : n, 1), 20);
     this.searchType = ["auto", "fast", "instant", "deep-lite", "deep", "deep-reasoning"].includes(
@@ -63,6 +75,10 @@ export default class ExaSearchEngine {
       body.startPublishedDate = new Date(
         Date.now() - daysMap[timeFilter] * 86400000
       ).toISOString();
+    }
+    // Exa's moderation is a boolean; both moderate and strict enable it.
+    if (this.safeSearch !== "off") {
+      body.moderation = true;
     }
     try {
       const response = await doFetch(API_URL, {

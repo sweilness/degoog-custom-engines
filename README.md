@@ -30,5 +30,7 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
 - Exa has no offset pagination on /search; the time filter maps onto `startPublishedDate`
   (ISO 8601). Free tier adds $10 in credits monthly (~1,400 plain searches at $7/1k);
   AI page summaries are deliberately not requested since Exa bills them separately.
+- Tavily and Exa have a Safe Search dropdown (Tavily `safe_search`, Exa `moderation`);
+  Jina's s.jina.ai has no documented equivalent. All entries require degoog 0.19.0+.
 - Maps cleanly to degoog's engine contract; Brave API Search
   (official-extensions/engines/brave-api-search) was used as the reference pattern.
