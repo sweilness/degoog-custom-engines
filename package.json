@@ -1,18 +1,13 @@
 {
   "name": "custom-degoog-engines",
-  "description": "Tavily and Jina Search engines for degoog.",
+  "description": "Tavily search engine for degoog.",
+  "repo-image": "https://raw.githubusercontent.com/sweilness/degoog-custom-engines/main/assets/repo-image.png",
   "engines": [
     {
       "path": "engines/tavily",
       "name": "Tavily",
       "description": "Tavily API web search. Needs a free API key from app.tavily.com.",
       "version": "1.0.1"
-    },
-    {
-      "path": "engines/jina",
-      "name": "Jina Search",
-      "description": "Jina AI s.jina.ai web search. Needs a free API key from jina.ai.",
-      "version": "1.1.0"
     }
   ]
 }

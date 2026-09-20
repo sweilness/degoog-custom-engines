@@ -1,24 +1,21 @@
-# Custom degoog engines: Tavily + Jina
+# Custom degoog engine: Tavily
 
 Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog).
 
 ## Structure
-- `package.json` — store manifest (what Settings → Store reads)
+- `package.json` — store manifest (what Settings → Store reads; includes the repo image)
 - `engines/tavily/index.js` — Tavily engine (POST api.tavily.com/search, Bearer key)
-- `engines/jina/index.js` — Jina engine (GET s.jina.ai/?q=, Bearer key)
-- `author.json` in each engine folder — edit name/url before publishing
+- `engines/tavily/author.json` — author info
+- `engines/tavily/screenshots/` — engine images shown in the Store gallery
+- `assets/repo-image.png` — repository image
 
 ## Install
-1. Push this folder to a git repo (e.g. github.com/you/degoog-custom-engines).
-2. degoog → Settings → Store → Add repository → paste the git URL.
-3. Install both engines, enable them in the Engines tab, then Configure → paste API keys.
-4. Bangs `!tavily` and `!jina` work out of the box.
+1. degoog → Settings → Store → Add repository → paste this repo's URL.
+2. Install Tavily, enable it in the Engines tab, then Configure → paste API key.
+3. Bang `!tavily` works out of the box.
 
 ## Notes
-- Tavily has no pagination: result pages beyond 1 repeat page 1. Jina search accepts
-  `num` (result count) and `hl` (language) — both are used by the engine — but its `page`
-  param is undocumented for search, so pagination is not attempted.
-- Jina response shape (`data[].title/url/description/content`) verified against the
-  s.jina.ai OpenAPI spec (2026-09).
-- Both map cleanly to degoog's engine contract; Brave API Search
+- Tavily has no pagination: result pages beyond 1 repeat page 1. The time filter maps
+  onto Tavily's `time_range` (day/week/month/year).
+- Maps cleanly to degoog's engine contract; Brave API Search
   (official-extensions/engines/brave-api-search) was used as the reference pattern.
