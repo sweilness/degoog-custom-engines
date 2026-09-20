@@ -12,6 +12,7 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
 - `engines/jina/screenshots/` — engine images shown in the Store gallery
 - `engines/exa/index.js` — Exa engine (POST api.exa.ai/search, x-api-key header)
 - `engines/exa/author.json` — author info
+- `engines/exa/screenshots/` — engine images shown in the Store gallery
 - `assets/repo-image.png` — repository image
 
 ## Install

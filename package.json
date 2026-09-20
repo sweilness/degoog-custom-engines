@@ -19,7 +19,7 @@
       "path": "engines/exa",
       "name": "Exa",
       "description": "Exa API web search. Free tier adds $10 in credits every month — needs a key from exa.ai.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     }
   ]
 }
