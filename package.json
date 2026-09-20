@@ -1,6 +1,7 @@
 {
   "name": "custom-degoog-engines",
   "description": "Tavily, Jina and Exa search engines for degoog.",
+  "author": "sweilness",
   "repo-image": "https://raw.githubusercontent.com/sweilness/degoog-custom-engines/main/assets/repo-image.png",
   "engines": [
     {
