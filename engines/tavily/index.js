@@ -36,17 +36,28 @@ export default class TavilyEngine {
       options: ["general", "news"],
       default: "general",
     },
+    {
+      key: "snippetLength",
+      label: "Max snippet length",
+      type: "number",
+      default: "200",
+      description:
+        "Characters kept from the page content shown under each result. 0 = keep Tavily's full text.",
+    },
   ];
   apiKey = "";
   maxResults = 10;
   searchDepth = "basic";
   topic = "general";
+  snippetLength = 200;
   configure(settings) {
     this.apiKey = settings.apiKey || "";
     const n = parseInt(settings.maxResults || "10", 10);
     this.maxResults = Math.min(Math.max(Number.isNaN(n) ? 10 : n, 1), 20);
     this.searchDepth = settings.searchDepth === "advanced" ? "advanced" : "basic";
     this.topic = settings.topic === "news" ? "news" : "general";
+    const s = parseInt(settings.snippetLength ?? "200", 10);
+    this.snippetLength = Number.isNaN(s) ? 200 : Math.max(0, s);
   }
   async executeSearch(query, page = 1, timeFilter, context) {
     if (!this.apiKey) return [];
@@ -74,10 +85,12 @@ export default class TavilyEngine {
       });
       context?.sentinel?.(response, this.name);
       const data = await response.json();
+      const maxSnippet = this.snippetLength;
       return (data?.results ?? []).map((item) => ({
         title: item.title ?? "",
         url: item.url ?? "",
-        snippet: item.content ?? "",
+        snippet:
+          maxSnippet > 0 ? (item.content ?? "").slice(0, maxSnippet) : (item.content ?? ""),
         source: this.name,
       }));
     } catch (e) {

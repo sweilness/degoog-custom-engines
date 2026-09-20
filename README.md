@@ -23,6 +23,8 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
 ## Notes
 - Tavily has no pagination: result pages beyond 1 repeat page 1. The time filter maps
   onto Tavily's `time_range` (day/week/month/year).
+- Tavily's `content` field has no length control in their API, so the engine truncates
+  it — set **Max snippet length** in the engine settings (default 200 chars, 0 = full).
 - Jina's s.jina.ai requires an API key and has no documented pagination or time filter;
   the engine sends `num` (result count) and `hl` (language) instead.
 - Exa has no offset pagination on /search; the time filter maps onto `startPublishedDate`

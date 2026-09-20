@@ -7,7 +7,7 @@
       "path": "engines/tavily",
       "name": "Tavily",
       "description": "Tavily API web search. Needs a free API key from app.tavily.com.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "path": "engines/jina",
