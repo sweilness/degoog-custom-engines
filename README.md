@@ -41,6 +41,10 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
   nothing. Unlike the other engines it supports real pagination (`pageno`). JSON
   output must be enabled on each instance (`search.formats` in settings.yml) — many
   public instances disable it, so self-hosted instances work best. No API key needed.
+- Instances are added as {Display name, URL} rows. The display name shows on the
+  results page as `SearXNG (name)` — leave it empty and the hostname is used.
+  Requires degoog 0.22.0+ (list setting type); URLs saved by older versions
+  migrate automatically.
 - Each SearXNG instance gets its own timeout (default 3s) before it is cut off —
   set **Instance timeout** so a hanging instance can't eat degoog's whole per-engine
   budget (default 10s; raise it in the engine's Advanced settings if you run many

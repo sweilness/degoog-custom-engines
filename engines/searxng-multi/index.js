@@ -12,9 +12,24 @@ export default class SearxngMultiEngine {
     {
       key: "instances",
       label: "Instances",
-      type: "urllist",
+      type: "list",
+      addLabel: "Add instance",
+      itemSchema: [
+        {
+          key: "name",
+          label: "Display name",
+          type: "text",
+          placeholder: "e.g. Home LAN (optional — hostname is used if empty)",
+        },
+        {
+          key: "url",
+          label: "Instance URL",
+          type: "url",
+          placeholder: "http://10.69.69.208:8080",
+        },
+      ],
       description:
-        "SearXNG instances, tried in order (ordered strategy) or all at once (race strategy). JSON output (format=json) must be enabled on each instance (search.formats in settings.yml).",
+        "SearXNG instances, tried in order (ordered strategy) or all at once (race strategy). JSON output (format=json) must be enabled on each instance (search.formats in settings.yml). The display name shows on the results page.",
     },
     {
       key: "safeSearch",
@@ -66,7 +81,9 @@ export default class SearxngMultiEngine {
   categories = "general";
 
   configure(settings) {
-    // The urllist control stores a JSON-encoded array of URLs.
+    // The list control stores a JSON-encoded array of {name, url} rows.
+    // Values saved by older versions (plain array of URL strings) migrate
+    // automatically: they keep working, with the hostname as the label.
     let list = settings.instances;
     if (typeof list === "string") {
       try {
@@ -77,8 +94,20 @@ export default class SearxngMultiEngine {
     }
     if (!Array.isArray(list)) list = [];
     this.instances = list
-      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u.trim()))
-      .map((u) => u.trim().replace(/\/+$/, ""));
+      .map((item) => {
+        if (typeof item === "string") return { name: "", url: item };
+        if (item && typeof item === "object") {
+          return { name: String(item.name ?? ""), url: String(item.url ?? "") };
+        }
+        return { name: "", url: "" };
+      })
+      .filter(
+        (e) => typeof e.url === "string" && /^https?:\/\//i.test(e.url.trim()),
+      )
+      .map((e) => ({
+        name: e.name.trim(),
+        url: e.url.trim().replace(/\/+$/, ""),
+      }));
     this.safeSearch = ["off", "moderate", "strict"].includes(settings.safeSearch)
       ? settings.safeSearch
       : "off";
@@ -115,32 +144,36 @@ export default class SearxngMultiEngine {
     return this.#orderedSearch(context, params);
   }
 
-  // Shared result mapping: hostname-labelled source + proxy-wrapped thumbs.
-  #toResults(items, base, context) {
-    let host = base;
-    try {
-      host = new URL(base).hostname;
-    } catch {
-      /* keep base as label */
-    }
+  // Shared result mapping: labelled source + proxy-wrapped thumbs.
+  #toResults(items, label, context) {
     return items.slice(0, this.maxResults).map((item) => {
       const thumb = item.thumbnail_src ?? item.thumbnail ?? "";
       return {
         title: item.title ?? "",
         url: item.url ?? "",
         snippet: (item.content ?? "").slice(0, 300),
-        source: `SearXNG (${host})`,
+        source: `SearXNG (${label})`,
         thumbnail: thumb ? (context?.signProxyUrl?.(thumb) ?? thumb) : "",
       };
     });
   }
 
-  #attempt(base, params, context, controller) {
+  // Display label for the source field: custom name, else the hostname.
+  #labelFor(entry) {
+    if (entry.name) return entry.name;
+    try {
+      return new URL(entry.url).hostname;
+    } catch {
+      return entry.url;
+    }
+  }
+
+  #attempt(entry, params, context, controller) {
     const doFetch = context?.fetch ?? fetch;
     const timer = setTimeout(() => controller.abort(), this.instanceTimeoutMs);
     return (async () => {
       try {
-        const response = await doFetch(`${base}/search?${params}`, {
+        const response = await doFetch(`${entry.url}/search?${params}`, {
           headers: { Accept: "application/json" },
           signal: controller.signal,
         });
@@ -150,9 +183,9 @@ export default class SearxngMultiEngine {
         if (!items.length) {
           // A 200 with zero results is not a win in race mode; the next
           // instance may still have hits for this query.
-          throw new Error(`${base}: empty results`);
+          throw new Error(`${entry.url}: empty results`);
         }
-        return { base, items };
+        return { label: this.#labelFor(entry), items };
       } finally {
         clearTimeout(timer);
       }
@@ -163,16 +196,16 @@ export default class SearxngMultiEngine {
   async #orderedSearch(context, params) {
     let lastBreach = null;
     let timedOut = false;
-    for (const base of this.instances) {
+    for (const entry of this.instances) {
       const controller = new AbortController();
       try {
-        const { items, base: wonBase } = await this.#attempt(
-          base,
+        const { label, items } = await this.#attempt(
+          entry,
           params,
           context,
           controller,
         );
-        return this.#toResults(items, wonBase, context);
+        return this.#toResults(items, label, context);
       } catch (e) {
         // Failover: remember the error and try the next instance. A structured
         // block (SentinelBreach) is kept separately so it can still be surfaced
@@ -202,8 +235,8 @@ export default class SearxngMultiEngine {
   async #raceSearch(context, params) {
     const controllers = this.instances.map(() => new AbortController());
     const errors = [];
-    const attempts = this.instances.map((base, i) =>
-      this.#attempt(base, params, context, controllers[i]).catch((e) => {
+    const attempts = this.instances.map((entry, i) =>
+      this.#attempt(entry, params, context, controllers[i]).catch((e) => {
         errors.push(e);
         throw e;
       }),
@@ -211,11 +244,11 @@ export default class SearxngMultiEngine {
 
     let won = false;
     try {
-      const { base, items } = await Promise.any(attempts);
+      const { label, items } = await Promise.any(attempts);
       won = true;
       // Cut off the losers so their sockets close instead of lingering.
       controllers.forEach((c) => c.abort());
-      return this.#toResults(items, base, context);
+      return this.#toResults(items, label, context);
     } catch {
       /* all instances failed — handled below */
     } finally {
