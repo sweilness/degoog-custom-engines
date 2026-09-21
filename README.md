@@ -41,10 +41,15 @@ Ready-to-push store repository for degoog (https://github.com/degoog-org/degoog)
   nothing. Unlike the other engines it supports real pagination (`pageno`). JSON
   output must be enabled on each instance (`search.formats` in settings.yml) — many
   public instances disable it, so self-hosted instances work best. No API key needed.
-- Each SearXNG instance gets its own timeout (default 3s) before failover moves on —
+- Each SearXNG instance gets its own timeout (default 3s) before it is cut off —
   set **Instance timeout** so a hanging instance can't eat degoog's whole per-engine
   budget (default 10s; raise it in the engine's Advanced settings if you run many
   instances). If every instance times out, the engine reports a timeout error
   instead of returning nothing.
+- **Instance strategy**: `ordered` (default) tries instances in list order and the
+  first healthy one serves — lowest load, consistent results. `race` contacts every
+  instance at once and the first one with results wins — lowest worst-case latency,
+  but every query hits every instance (and, through them, their upstream engines),
+  so use it with instances you're comfortable hammering.
 - Maps cleanly to degoog's engine contract; Brave API Search
   (official-extensions/engines/brave-api-search) was used as the reference pattern.
