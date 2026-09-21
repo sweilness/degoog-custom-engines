@@ -32,6 +32,14 @@ export default class SearxngMultiEngine {
       description: "Results kept per search (1-50).",
     },
     {
+      key: "instanceTimeout",
+      label: "Instance timeout (ms)",
+      type: "number",
+      default: "3000",
+      description:
+        "Time each instance gets to answer before failover moves to the next one. Keep instances × this within degoog's per-engine timeout (Advanced settings, default 10s) — or raise that timeout.",
+    },
+    {
       key: "categories",
       label: "Categories",
       type: "text",
@@ -45,6 +53,7 @@ export default class SearxngMultiEngine {
   safeSearch = "off";
   maxResults = 20;
   categories = "general";
+  instanceTimeoutMs = 3000;
 
   configure(settings) {
     // The urllist control stores a JSON-encoded array of URLs.
@@ -65,6 +74,11 @@ export default class SearxngMultiEngine {
       : "off";
     const n = parseInt(settings.maxResults || "20", 10);
     this.maxResults = Math.min(Math.max(Number.isNaN(n) ? 20 : n, 1), 50);
+    const t = parseInt(settings.instanceTimeout || "3000", 10);
+    this.instanceTimeoutMs = Math.min(
+      Math.max(Number.isNaN(t) ? 3000 : t, 500),
+      60000,
+    );
     this.categories = (settings.categories || "general").trim() || "general";
   }
 
@@ -87,10 +101,16 @@ export default class SearxngMultiEngine {
 
     let lastError = null;
     let lastBreach = null;
+    let timedOut = false;
     for (const base of this.instances) {
+      // Bound each attempt so a hanging instance cannot eat the whole
+      // engine timeout before failover gets a chance to run.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.instanceTimeoutMs);
       try {
         const response = await doFetch(`${base}/search?${params}`, {
           headers: { Accept: "application/json" },
+          signal: controller.signal,
         });
         context?.sentinel?.(response, this.name);
         const data = await response.json();
@@ -122,13 +142,26 @@ export default class SearxngMultiEngine {
         // if a later instance only fails at the network level.
         lastError = e;
         if (e?.name === "SentinelBreach") lastBreach = e;
+        if (e?.name === "AbortError") timedOut = true;
+      } finally {
+        clearTimeout(timer);
       }
     }
 
     // Every instance failed. If any of them was hard-blocked (403/429/5xx),
     // surface that structured error so the UI shows "engine blocked"
-    // instead of a silent 0-results. Pure network failures return [].
+    // instead of a silent 0-results. If they all timed out, report a
+    // timeout the same way. Pure network failures return [].
     if (lastBreach) throw lastBreach;
+    if (timedOut) {
+      if (context?.engineError) {
+        throw context.engineError(
+          "timeout",
+          `${this.name}: all instances timed out after ${this.instanceTimeoutMs}ms`,
+          { engine: this.name },
+        );
+      }
+    }
     return [];
   }
 }

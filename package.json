@@ -29,7 +29,7 @@
       "path": "engines/searxng-multi",
       "name": "SearXNG Multi",
       "description": "SearXNG metasearch with multi-instance failover. No API key — needs instances with JSON output enabled.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "minDegoogVersion": "0.19.0"
     }
   ]
